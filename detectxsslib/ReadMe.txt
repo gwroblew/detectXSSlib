@@ -1,3 +1,32 @@
+<?import
+<applet
+<base
+<embed
+<frame
+<iframe
+<implementation
+<import
+<link
+<meta
+<object
+<script
+<style
+charset
+classid
+code
+codetype
+data
+href
+http-equiv
+src
+type
+vmlframe
+xlink:href
+=
+[ /+\t]*
+<
+>
+.*
 
 # 
 # non-volatile
