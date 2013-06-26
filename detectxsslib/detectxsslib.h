@@ -17,9 +17,16 @@ typedef struct _xsslibUrl
 	int			MatchedRule;
 } xsslibUrl;
 
+
+#ifdef	__cplusplus
+extern "C"
+{
+#endif
 void xsslibUrlInit(xsslibUrl *url);
 void xsslibUrlSetUrl(xsslibUrl *url, char *x);
 void xsslibUrlSetUrl2(xsslibUrl *url, char *x, unsigned int len);
 XSSRESULT xsslibUrlScan(xsslibUrl *url);
-
+#ifdef	__cplusplus
+}
+#endif
 #endif // !__DETECTXSSLIB_H

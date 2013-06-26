@@ -1,9 +1,11 @@
 #include "detectxsslib.h"
 
+#ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wmultichar"
 #pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
 
-#define SWAP_UINT16(x) (((x) >> 8) | ((x) << 8))
+#define SWAP_UINT16(x) (((x) >> 8) | (((x) & 0xFF) << 8))
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
 #define	TC(disp,str)	(*(unsigned short *)(p + disp) == SWAP_UINT16(str))		// compare two characters
@@ -13,7 +15,7 @@ void xsslibUrlInit(xsslibUrl *url)
 {
 	memset(url->Url, 0, sizeof(url->Url));
 	url->Result = XssUnknown;
-};
+}
 
 #define	TOKEN_SCRIPT			1	// <script
 #define	TOKEN_STYLE				2	// <style
@@ -46,9 +48,9 @@ void xsslibUrlInit(xsslibUrl *url)
 #define	TOKEN_VBSCRIPT			30	// vbscript:
 #define	TOKEN_ANY				127	// .*
 
-#define	TOKEN(x,l)	{ if(p != last_match) { url->Tokens[ti++] = TOKEN_ANY; } url->Tokens[ti++] = TOKEN_##x; p += l; last_match = p; continue; }
+#define	TOKEN(x,l)	{ if(p != last_match + 1) { url->Tokens[ti++] = TOKEN_ANY; } url->Tokens[ti++] = TOKEN_##x; p += l; last_match = p; continue; }
 
-inline char xsslibToLower(char c)
+__inline char xsslibToLower(char c)
 {
 	if(c >= 'A' && c <= 'Z')
 		return c + 32;
@@ -56,7 +58,7 @@ inline char xsslibToLower(char c)
 	return c;
 }
 
-inline int xsslibHexValue(char c)
+__inline int xsslibHexValue(char c)
 {
 	if(c >= 'a')
 		return c - 'a' + 10;
@@ -69,7 +71,7 @@ void xsslibParseUrl(xsslibUrl *url)
 	char c, *p = url->Url;
 	int st = 0;
 	int ti = 0;
-	char *last_match = p;
+	char *last_match = p, *d = p;
 
 	if(FC(0,'http'))
 	{
@@ -87,10 +89,21 @@ void xsslibParseUrl(xsslibUrl *url)
 		if(c == '%')
 		{
 			c = (xsslibHexValue(*p) << 4) + xsslibHexValue(p[1]);
-			p++;
-			*p++ = c;
-		}
 
+			if(c < 32 || (c & 128) != 0)
+				c = '1';
+
+			p += 2;
+		}
+		*d++ = c;
+	}
+
+	memset(d, 0, 64);
+
+	p = url->Url;
+
+	while((c = *p++) != 0)
+	{
 		switch(st)
 		{
 		case 0:
@@ -219,12 +232,14 @@ void xsslibParseUrl(xsslibUrl *url)
 				continue;
 			}
 			st = 0;
-			TOKEN(XTAB,-1);
+			p--;
+			TOKEN(XTAB,0);
 			break;
 		}
 	}
 
 	url->TokenCnt = ti;
+	url->Tokens[ti] = 0;
 }
 
 void xsslibUrlSetUrl(xsslibUrl *url, char *src)
