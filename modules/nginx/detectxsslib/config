@@ -1,3 +1,4 @@
 ngx_addon_name=ngx_http_detectxsslib
-NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/ngx_http_detectxsslib.c"
-CORE_INCS="$CORE_INCS $ngx_addon_dir"
+NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/ngx_http_detectxsslib.c
+$ngx_addon_dir/../../../detectxsslib/detectxsslib.c"
+CORE_INCS="$CORE_INCS $ngx_addon_dir/../../../detectxsslib"

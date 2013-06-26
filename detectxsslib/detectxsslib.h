@@ -19,6 +19,7 @@ typedef struct _xsslibUrl
 
 void xsslibUrlInit(xsslibUrl *url);
 void xsslibUrlSetUrl(xsslibUrl *url, char *x);
+void xsslibUrlSetUrl2(xsslibUrl *url, char *x, unsigned int len);
 XSSRESULT xsslibUrlScan(xsslibUrl *url);
 
 #endif // !__DETECTXSSLIB_H
