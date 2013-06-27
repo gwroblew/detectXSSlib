@@ -1,0 +1,3 @@
+#!/bin/sh
+#
+g++ -Wno-multichar -I../../detectxsslib -o xssscan xssscan.cpp ../../detectxsslib/detectxsslib.c

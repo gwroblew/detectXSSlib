@@ -8,6 +8,7 @@
 //----------------------------------------------------------------------------------------
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <map>
@@ -30,7 +31,7 @@ typedef struct
 
 void parseargs(int argc, char *argv[])
 {
-	if(argc == 1 || stricmp(argv[1], "-h") == 0)
+	if(argc == 1 || strcasecmp(argv[1], "-h") == 0)
 	{
 		printf("\n");
 		printf("xssscan ver 1.0 (c) 2013 Greg Wroblewski\n");
