@@ -1,40 +1,19 @@
 ========================================================================
-    CONSOLE APPLICATION : xssscan Project Overview
+  CONSOLE APPLICATION : xssscan
 ========================================================================
 
-AppWizard has created this xssscan application for you.
+xssscan ver 1.0 (c) 2013 Greg Wroblewski
 
-This file contains a summary of what you will find in each of the files that
-make up your xssscan application.
+Command line tool for detection of XSS attacks in URLs. Based on ModSecurity rules from OWASP CRS.
+Optimized for performance and large scale data mining.
 
+Usage:
+xssscan [-t] [-r] [-x] <URL>
+xssscan [-a] [-d] [-r] [-x] -f <TEXT_FILE_WITH_URLS>
 
-xssscan.vcxproj
-    This is the main project file for VC++ projects generated using an Application Wizard.
-    It contains information about the version of Visual C++ that generated the file, and
-    information about the platforms, configurations, and project features selected with the
-    Application Wizard.
-
-xssscan.vcxproj.filters
-    This is the filters file for VC++ projects generated using an Application Wizard. 
-    It contains information about the association between the files in your project 
-    and the filters. This association is used in the IDE to show grouping of files with
-    similar extensions under a specific node (for e.g. ".cpp" files are associated with the
-    "Source Files" filter).
-
-xssscan.cpp
-    This is the main application source file.
-
-/////////////////////////////////////////////////////////////////////////////
-Other standard files:
-
-StdAfx.h, StdAfx.cpp
-    These files are used to build a precompiled header (PCH) file
-    named xssscan.pch and a precompiled types file named StdAfx.obj.
-
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
-
-/////////////////////////////////////////////////////////////////////////////
+Options:
+	-a - in output replace host names with www.example.com
+	-d - deduplicate URLs by same host name
+	-r - show rule number for detected XSS (for statistics or debugging)
+	-t - show tokens of parsed URL (useful for debugging only)
+	-x - list only URLs where XSS was not detected (default: was detected)
