@@ -7,3 +7,6 @@ Project folders:
 * modules - server modules using detectxsslib
 * test - sets of URLs used for verification of the library
 * tools - command line tools using detectxsslib
+
+
+See license.txt for licensing details.

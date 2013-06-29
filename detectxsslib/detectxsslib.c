@@ -14,16 +14,22 @@
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
+// this assumes we have little endian machine, replace with empty macros on big endian machines
+//
 #define SWAP_UINT16(x) (((x) >> 8) | (((x) & 0xFF) << 8))
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
+// macros for faster string comparison
+//
 #define	TC(disp,str)	(*(unsigned short *)(p + disp) == SWAP_UINT16(str))		// compare two characters
 #define	FC(disp,str)	(*(unsigned long *)(p + disp) == SWAP_UINT32(str))		// compare four characters
 
 void xsslibUrlInit(xsslibUrl *url)
 {
-	memset(url->Url, 0, sizeof(url->Url));
+	memset(url->Url, 0, 128);
 	url->Result = XssUnknown;
+	url->TokenCnt = 0;
+	url->MatchedRule = 0;
 }
 
 #define	TOKEN_SCRIPT			1	// <script
@@ -71,42 +77,77 @@ __inline int xsslibHexValue(char c)
 {
 	if(c >= 'a')
 		return c - 'a' + 10;
+	if(c >= 'A')
+		return c - 'A' + 10;
 
 	return c - '0';
 }
 
-void xsslibParseUrl(xsslibUrl *url)
+// parse input URL into tokens (defined above)
+//
+void xsslibParseUrl(xsslibUrl *url, char *u, int len)
 {
-	char c, *p = url->Url;
+	char c, *p = u;
 	int st = 0;
 	int ti = 0;
-	char *last_match = p, *d = p;
+	char *last_match = p, *d = url->Url;
+	char *max = d + MAX_URL_LENGTH;
+	char *end = p + len;
 
+	// skip http[s]:// if present
+	//
 	if(FC(0,'http'))
 	{
 		p += 4;
 
 		if(*p == 's')
 			p++;
+		if(*p == ':')
+			p++;
 
 		if(TC(0,'//'))
 			p += 2;
 	}
 
-	while((c = *p++) != 0)
+	// naive URL decoding, needs improvement
+	//
+	if(len < 0)
 	{
-		if(c == '%')
+		while((c = xsslibToLower(*p++)) != 0 && d < max)
 		{
-			c = (xsslibHexValue(*p) << 4) + xsslibHexValue(p[1]);
+			if(c == '%')
+			{
+				c = (xsslibHexValue(*p) << 4) + xsslibHexValue(p[1]);
 
-			if(c < 32 || (c & 128) != 0)
-				c = '1';
+				if(c < 32 || (c & 128) != 0)
+					c = '1';
 
-			p += 2;
+				p += 2;
+			}
+			*d++ = c;
 		}
-		*d++ = c;
+	}
+	else
+	{
+		while(p < end && d < max)
+		{
+			c = xsslibToLower(*p++);
+
+			if(c == '%')
+			{
+				c = (xsslibHexValue(*p) << 4) + xsslibHexValue(p[1]);
+
+				if(c < 32 || (c & 128) != 0)
+					c = '1';
+
+				p += 2;
+			}
+			*d++ = c;
+		}
 	}
 
+	// make sure that token comparison will not bump into unencoded URL tail
+	//
 	memset(d, 0, 64);
 
 	p = url->Url;
@@ -115,6 +156,8 @@ void xsslibParseUrl(xsslibUrl *url)
 	{
 		switch(st)
 		{
+		// default state of tokenizer
+		//
 		case 0:
 			switch(c)
 			{
@@ -178,6 +221,8 @@ void xsslibParseUrl(xsslibUrl *url)
 				break;
 			}
 			break;
+		// state parsing tokens starting with <
+		//
 		case 1:
 			st = 0;
 			switch(c)
@@ -229,8 +274,11 @@ void xsslibParseUrl(xsslibUrl *url)
 					TOKEN(STYLE,4);
 				break;
 			}
-			TOKEN(LT,-1);
+			p--;
+			TOKEN(LT,0);
 			break;
+		// state parsing "extended tab" token (TOKEN_XTAB)
+		//
 		case 2:
 			switch(c)
 			{
@@ -253,29 +301,16 @@ void xsslibParseUrl(xsslibUrl *url)
 
 void xsslibUrlSetUrl(xsslibUrl *url, char *src)
 {
-	char *dst = url->Url;
-
-	while(*src != 0)
-		*dst++ = xsslibToLower(*src++);
-
-	memset(dst, 0, 64);
-
-	xsslibParseUrl(url);
+	xsslibParseUrl(url, src, -1);
 }
 
 void xsslibUrlSetUrl2(xsslibUrl *url, char *src, unsigned int len)
 {
-	char *dst = url->Url;
-	char *end = src + len;
-
-	while(src != end)
-		*dst++ = xsslibToLower(*src++);
-
-	memset(dst, 0, 64);
-
-	xsslibParseUrl(url);
+	xsslibParseUrl(url, src, len);
 }
 
+// helper macros for simplified regex matching
+//
 #define	RULE(n)				{ rule = n; goto xssFound; }
 #define	MATCH(t)			{ while(i < url->TokenCnt) if(url->Tokens[i++] == t) break; }
 #define	MATCH2(t1,t2)		{ while(i < url->TokenCnt) { if(url->Tokens[i] == t1 || url->Tokens[i] == t2) { i++; break; } i++; } }

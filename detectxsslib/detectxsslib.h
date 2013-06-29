@@ -3,14 +3,16 @@
 
 #include <memory.h>
 
-#define	MAX_URL_LENGTH	(4096)
-#define	MAX_TOKENS		(4096)
+#define	MAX_URL_LENGTH	(4192)
+#define	MAX_TOKENS		(5120)
 
+// possible outcomes of XSS scanning
+//
 typedef enum { XssUnknown, XssClean, XssSuspected, XssFound } XSSRESULT;
 
 typedef struct _xsslibUrl
 {
-	char		Url[MAX_URL_LENGTH + 64];		// for skipping length checks in regexes
+	char		Url[MAX_URL_LENGTH + 64];		// 64 for skipping length checks in regexes
 	char		Tokens[MAX_TOKENS];
 	XSSRESULT	Result;
 	int			TokenCnt;

@@ -139,12 +139,18 @@ int main(int argc, char* argv[])
 
 	while(fgets(line, MAX_URL_LENGTH, fr) != NULL)
 	{
+		// read one line = input URL
+		//
 		int l = strlen(line);
 
+		// get rid of redundant EOL
+		//
 		while(--l >= 0)
 			if(line[l] == 10 || line[l] == 13)
 				line[l] = 0;
 
+		// parse and scan for XSS
+		//
 		xsslibUrlSetUrl(&url, line);
 
 		bool result = xsslibUrlScan(&url) == XssFound;
@@ -154,6 +160,8 @@ int main(int argc, char* argv[])
 			char *p = line;
 			int sc = 0;
 
+			// simple way of extracting host name
+			//
 			while(*p != 0)
 				if(*p++ == '/' && ++sc == 3)
 					break;
@@ -164,6 +172,8 @@ int main(int argc, char* argv[])
 				*p = 0;
 				std::string host = line;
 
+				// we only store one URL per host when deduplication is enabled
+				//
 				if(urlmap.find(host) == urlmap.end())
 				{
 					XSSFIND xf;
@@ -191,6 +201,8 @@ int main(int argc, char* argv[])
 
 	if(g_deduplicate)
 	{
+		// now print all URLs with unique host name
+		//
 		for(std::map<std::string,XSSFIND>::iterator it = urlmap.begin(); it != urlmap.end(); ++it)
 		{
 			if(g_showrule)

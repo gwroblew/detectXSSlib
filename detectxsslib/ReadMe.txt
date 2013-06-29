@@ -6,7 +6,8 @@ Contact: gwroblew@hotmail.com
 
 detectXSSlib is a general purpose library for detection of XSS attacks in URLs.
 It is based on a subset of OWASP CRS ModSecurity rules and optimized for
-performance. See sample tool xssscan and nginx module for API usage examples.
+performance. See sample tool xssscan and nginx module 
+(in ngx_http_detectxsslib_handler) for API usage examples.
 
 The library processes URLs in three stages. First stage removes URL encoding
 and cleans URL from noisy characters. Stage two tokenizes URL matching
