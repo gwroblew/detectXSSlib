@@ -85,6 +85,10 @@ __inline int xsslibHexValue(char c)
 
 // parse input URL into tokens (defined above)
 //
+//     url - xsslib object
+//     u   - URL to parse
+//     len - length of the URL to parse, or negative if zero-terminated
+//
 void xsslibParseUrl(xsslibUrl *url, char *u, int len)
 {
 	char c, *p = u;
@@ -299,11 +303,22 @@ void xsslibParseUrl(xsslibUrl *url, char *u, int len)
 	url->Tokens[ti] = 0;
 }
 
+// set URL to prepare for XSS scanning
+//
+//     url - xsslib object
+//     src - zero-terminated URL
+//
 void xsslibUrlSetUrl(xsslibUrl *url, char *src)
 {
 	xsslibParseUrl(url, src, -1);
 }
 
+// set URL to prepare for XSS scanning
+//
+//     url - xsslib object
+//     src - input URL
+//     len - length of the URL
+//
 void xsslibUrlSetUrl2(xsslibUrl *url, char *src, unsigned int len)
 {
 	xsslibParseUrl(url, src, len);
@@ -321,6 +336,12 @@ void xsslibUrlSetUrl2(xsslibUrl *url, char *src, unsigned int len)
 #define	ENDIF				}
 #define	IFNEXTEND(t,r)		if(url->Tokens[i] == t) RULE(r);
 
+// scans preparsed URL in the xsslib object
+// output:
+//     XSSRESULT - result of scanning
+//     url->MatchedRule - 0 or number of rule that was matched (for XssFound or XssSuspected result only)
+//     url->Result - same as return value: XssClean (no XSS), XssFound (high probability XSS), or XssSuspected (possible XSS)
+//
 XSSRESULT xsslibUrlScan(xsslibUrl *url)
 {
 	int rule = 0;
