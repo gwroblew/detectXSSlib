@@ -31,7 +31,11 @@ typedef struct
 
 void parseargs(int argc, char *argv[])
 {
+#ifdef __GNUC__
 	if(argc == 1 || strcasecmp(argv[1], "-h") == 0)
+#else
+	if(argc == 1 || _stricmp(argv[1], "-h") == 0)
+#endif
 	{
 		printf("\n");
 		printf("xssscan ver 1.0 (c) 2013 Greg Wroblewski\n");
